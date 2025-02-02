@@ -120,11 +120,11 @@ resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
     role       = aws_iam_role.eks_node_role.name
   }
 
-  # resource "aws_iam_instance_profile" "worker" {
-  #   depends_on = [aws_iam_role.eks_node_role]
-  #   name       = "veera-eks-worker-new-profile"
-  #   role       = aws_iam_role.eks_node_role.name
-  # }
+  resource "aws_iam_instance_profile" "worker" {
+    depends_on = [aws_iam_role.eks_node_role]
+    name       = "eks-worker-new-profile"
+    role       = aws_iam_role.eks_node_role.name
+  }
 ##############
 
 ########################
@@ -172,8 +172,6 @@ resource "aws_eks_cluster" "eks_cluster" {
 resource "aws_launch_template" "eks_launch_template" {
   name_prefix   = "eks-node-"
   image_id      = "ami-0f214d1b3d031dc53"
-  instance_type = "t2.small"
-
   tag_specifications {
     resource_type = "instance"
     tags = {
