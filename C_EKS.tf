@@ -115,10 +115,10 @@ resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
     role       = aws_iam_role.eks_node_role.name
   }
 
-  # resource "aws_iam_role_policy_attachment" "autoscaler" {
-  #   policy_arn = aws_iam_policy.autoscaler.arn
-  #   role       = aws_iam_role.eks_node_role.name
-  # }
+  resource "aws_iam_role_policy_attachment" "autoscaler" {
+    policy_arn = aws_iam_policy.autoscaler.arn
+    role       = aws_iam_role.eks_node_role.name
+  }
 
   # resource "aws_iam_instance_profile" "worker" {
   #   depends_on = [aws_iam_role.eks_node_role]
@@ -126,6 +126,30 @@ resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
   #   role       = aws_iam_role.eks_node_role.name
   # }
 ##############
+
+########################
+  resource "aws_iam_policy" "autoscaler" {
+    name = "eks-autoscaler-policy"
+    policy = jsonencode({
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Action": [
+            "autoscaling:DescribeAutoScalingGroups",
+            "autoscaling:DescribeAutoScalingInstances",
+            "autoscaling:DescribeTags",
+            "autoscaling:DescribeLaunchConfigurations",
+            "autoscaling:SetDesiredCapacity",
+            "autoscaling:TerminateInstanceInAutoScalingGroup",
+            "ec2:DescribeLaunchTemplateVersions"
+          ],
+          "Effect": "Allow",
+          "Resource": "*"
+        }
+      ]
+    })
+  }
+#######################
 
 resource "aws_eks_cluster" "eks_cluster" {
   name     = "pvt-app-cluster"
