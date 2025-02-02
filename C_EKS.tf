@@ -112,13 +112,13 @@ resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
 
   resource "aws_iam_role_policy_attachment" "s3" {
     policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
-    role       = aws_iam_role.woreks_node_roleker.name
-  }
-
-  resource "aws_iam_role_policy_attachment" "autoscaler" {
-    policy_arn = aws_iam_policy.autoscaler.arn
     role       = aws_iam_role.eks_node_role.name
   }
+
+  # resource "aws_iam_role_policy_attachment" "autoscaler" {
+  #   policy_arn = aws_iam_policy.autoscaler.arn
+  #   role       = aws_iam_role.eks_node_role.name
+  # }
 
   # resource "aws_iam_instance_profile" "worker" {
   #   depends_on = [aws_iam_role.eks_node_role]
