@@ -205,6 +205,7 @@ resource "aws_eks_node_group" "eks_node_group" {
     id      = aws_launch_template.eks_launch_template.id
     version = "$Latest"
   }
+  
 }
 
 # EKS Cluster Security Group
