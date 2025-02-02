@@ -171,7 +171,7 @@ resource "aws_eks_cluster" "eks_cluster" {
 
 resource "aws_launch_template" "eks_launch_template" {
   name_prefix   = "eks-node-"
-  image_id      = "ami-0f214d1b3d031dc53"
+  image_id      = "ami-01493046d3cff1aba"
   tag_specifications {
     resource_type = "instance"
     tags = {
