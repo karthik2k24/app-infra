@@ -169,6 +169,19 @@ resource "aws_eks_cluster" "eks_cluster" {
 }
 
 
+resource "aws_launch_template" "eks_launch_template" {
+  name_prefix   = "eks-node-"
+  image_id      = "ami-0f214d1b3d031dc53"
+  instance_type = "t2.small"
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "eks-node"
+    }
+  }
+}
+
 
 # EKS Node Group
 resource "aws_eks_node_group" "eks_node_group" {
@@ -183,12 +196,17 @@ resource "aws_eks_node_group" "eks_node_group" {
 
   scaling_config {
     desired_size = 1
-    max_size     = 1
+    max_size     = 2
     min_size     = 1
   }
 
-  instance_types = ["t3.medium"]
+  instance_types = ["t2.small"]
   capacity_type = "SPOT" 
+
+  launch_template {
+    id      = aws_launch_template.eks_launch_template.id
+    version = "$Latest"
+  }
 }
 
 # EKS Cluster Security Group
