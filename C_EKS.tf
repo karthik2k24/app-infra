@@ -6,35 +6,16 @@ resource "aws_iam_role" "eks_cluster_role" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action    = "sts:AssumeRole"
+        Action = "sts:AssumeRole"
         Principal = {
           Service = "eks.amazonaws.com"
         }
-        Effect    = "Allow"
-        Sid       = ""
+        Effect = "Allow"
+        Sid    = ""
       },
     ]
   })
 }
-######
-  # resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
-  #   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  #   role       = aws_iam_role.master.name
-  # }
-
-  # resource "aws_iam_role_policy_attachment" "AmazonEKSServicePolicy" {
-  #   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
-  #   role       = aws_iam_role.master.name
-  # }
-
-  # resource "aws_iam_role_policy_attachment" "AmazonEKSVPCResourceController" {
-  #   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
-  #   role       = aws_iam_role.master.name
-  # }
-
-#######
-
-
 
 # IAM Policy for EKS Cluster Role
 resource "aws_iam_role_policy_attachment" "eks_cluster_policy_attachment" {
@@ -47,10 +28,10 @@ resource "aws_iam_role_policy_attachment" "AmazonEKSServicePolicy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
 }
 
-  resource "aws_iam_role_policy_attachment" "AmazonEKSVPCResourceController" {
-    policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
-    role       = aws_iam_role.eks_cluster_role.name
-  }
+resource "aws_iam_role_policy_attachment" "AmazonEKSVPCResourceController" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
+  role       = aws_iam_role.eks_cluster_role.name
+}
 
 resource "aws_iam_role_policy_attachment" "eks_node_cni_policy_attachment" {
   role       = aws_iam_role.eks_node_role.name
@@ -64,12 +45,12 @@ resource "aws_iam_role" "eks_node_role" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action    = "sts:AssumeRole"
+        Action = "sts:AssumeRole"
         Principal = {
           Service = "ec2.amazonaws.com"
         }
-        Effect    = "Allow"
-        Sid       = ""
+        Effect = "Allow"
+        Sid    = ""
       },
     ]
   })
@@ -91,70 +72,70 @@ resource "aws_iam_role_policy_attachment" "eks_node_ecr_policy_attachment" {
 
 ##############
 resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
-    policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-    role       = aws_iam_role.eks_node_role.name
-  }
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  role       = aws_iam_role.eks_node_role.name
+}
 
-  resource "aws_iam_role_policy_attachment" "AmazonEKS_CNI_Policy" {
-    policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-    role       = aws_iam_role.eks_node_role.name
-  }
+resource "aws_iam_role_policy_attachment" "AmazonEKS_CNI_Policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  role       = aws_iam_role.eks_node_role.name
+}
 
-  resource "aws_iam_role_policy_attachment" "AmazonSSMManagedInstanceCore" {
-    policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-    role       = aws_iam_role.eks_node_role.name
-  }
+resource "aws_iam_role_policy_attachment" "AmazonSSMManagedInstanceCore" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role       = aws_iam_role.eks_node_role.name
+}
 
-  resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
-    policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-    role       = aws_iam_role.eks_node_role.name
-  }
+resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  role       = aws_iam_role.eks_node_role.name
+}
 
-  resource "aws_iam_role_policy_attachment" "s3" {
-    policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
-    role       = aws_iam_role.eks_node_role.name
-  }
+resource "aws_iam_role_policy_attachment" "s3" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+  role       = aws_iam_role.eks_node_role.name
+}
 
-  resource "aws_iam_role_policy_attachment" "autoscaler" {
-    policy_arn = aws_iam_policy.autoscaler.arn
-    role       = aws_iam_role.eks_node_role.name
-  }
+resource "aws_iam_role_policy_attachment" "autoscaler" {
+  policy_arn = aws_iam_policy.autoscaler.arn
+  role       = aws_iam_role.eks_node_role.name
+}
 
-  resource "aws_iam_instance_profile" "worker" {
-    depends_on = [aws_iam_role.eks_node_role]
-    name       = "eks-worker-new-profile"
-    role       = aws_iam_role.eks_node_role.name
-  }
+resource "aws_iam_instance_profile" "worker" {
+  depends_on = [aws_iam_role.eks_node_role]
+  name       = "eks-worker-new-profile"
+  role       = aws_iam_role.eks_node_role.name
+}
 ##############
 
 ########################
-  resource "aws_iam_policy" "autoscaler" {
-    name = "eks-autoscaler-policy"
-    policy = jsonencode({
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Action": [
-            "autoscaling:DescribeAutoScalingGroups",
-            "autoscaling:DescribeAutoScalingInstances",
-            "autoscaling:DescribeTags",
-            "autoscaling:DescribeLaunchConfigurations",
-            "autoscaling:SetDesiredCapacity",
-            "autoscaling:TerminateInstanceInAutoScalingGroup",
-            "ec2:DescribeLaunchTemplateVersions"
-          ],
-          "Effect": "Allow",
-          "Resource": "*"
-        }
-      ]
-    })
-  }
+resource "aws_iam_policy" "autoscaler" {
+  name = "eks-autoscaler-policy"
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Action" : [
+          "autoscaling:DescribeAutoScalingGroups",
+          "autoscaling:DescribeAutoScalingInstances",
+          "autoscaling:DescribeTags",
+          "autoscaling:DescribeLaunchConfigurations",
+          "autoscaling:SetDesiredCapacity",
+          "autoscaling:TerminateInstanceInAutoScalingGroup",
+          "ec2:DescribeLaunchTemplateVersions"
+        ],
+        "Effect" : "Allow",
+        "Resource" : "*"
+      }
+    ]
+  })
+}
 #######################
 
 resource "aws_eks_cluster" "eks_cluster" {
   name     = "pvt-app-cluster"
   role_arn = aws_iam_role.eks_cluster_role.arn
-  version = "1.32"
+  version  = "1.32"
 
   vpc_config {
     subnet_ids = [
@@ -165,19 +146,14 @@ resource "aws_eks_cluster" "eks_cluster" {
     endpoint_public_access  = true
     endpoint_private_access = true
   }
-  
+
 }
 
 
 resource "aws_launch_template" "eks_launch_template" {
-  name_prefix   = "eks-node-"
-  image_id      = "ami-01493046d3cff1aba"
-   user_data = <<-EOF
-              #!/bin/bash
-              curl -O https://github.com/awslabs/amazon-eks-ami/raw/master/files/bootstrap.sh
-              chmod +x bootstrap.sh
-              /etc/eks/bootstrap.sh pvt-app-cluster
-              EOF
+  name_prefix = "eks-node-"
+  image_id    = "ami-01493046d3cff1aba"
+  user_data   = base64encode("#!/bin/bash\n/etc/eks/bootstrap.sh pvt-app-cluster\n")
   tag_specifications {
     resource_type = "instance"
     tags = {
@@ -191,8 +167,8 @@ resource "aws_launch_template" "eks_launch_template" {
 resource "aws_eks_node_group" "eks_node_group" {
   cluster_name    = aws_eks_cluster.eks_cluster.name
   node_group_name = "pvt-app-node-group"
-  node_role_arn       = aws_iam_role.eks_node_role.arn
-  subnet_ids      = [
+  node_role_arn   = aws_iam_role.eks_node_role.arn
+  subnet_ids = [
     aws_subnet.pvt_app_1a.id,
     aws_subnet.pvt_app_1b.id,
     aws_subnet.pvt_app_1c.id
@@ -205,13 +181,13 @@ resource "aws_eks_node_group" "eks_node_group" {
   }
 
   instance_types = ["t2.small"]
-  capacity_type = "SPOT" 
+  capacity_type  = "SPOT"
 
   launch_template {
     id      = aws_launch_template.eks_launch_template.id
     version = "$Latest"
   }
-  
+
 }
 
 # EKS Cluster Security Group
@@ -226,14 +202,14 @@ resource "aws_security_group" "eks_sg" {
   }
 
   ingress {
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["10.0.0.0/16"]
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
   }
 
   ingress {
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["10.0.0.0/16"]
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"

@@ -7,7 +7,7 @@ resource "aws_eip" "nat_eip" {
 # NAT Gateway
 resource "aws_nat_gateway" "nat_gw" {
   allocation_id = aws_eip.nat_eip.id
-  subnet_id     = aws_subnet.pub_app_1a.id  # Ensure this is in the public subnet
+  subnet_id     = aws_subnet.pub_app_1a.id # Ensure this is in the public subnet
 
   tags = {
     Name = "nat-gateway"
