@@ -5,7 +5,7 @@
 .terraform.lock.hcl
 terraform.tfvars
 terraform.tfvars.json
-
+.terraform.tfstate.lock.info
 # Ignore macOS system files
 .DS_Store
 
