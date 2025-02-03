@@ -1,6 +1,7 @@
 resource "aws_security_group" "pvt_subnets_sg" {
   name        = "pvt-subnets-sg"
   description = "Security group for EC2 instances in private subnets"
+  vpc_id      = aws_vpc.pvt_app_vpc.id
 
   # Allow SSH access from Bastion Host (you can limit this to specific Bastion host IP if desired)
   ingress {

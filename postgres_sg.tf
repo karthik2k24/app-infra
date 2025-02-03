@@ -1,6 +1,7 @@
 resource "aws_security_group" "postgres_sg" {
   name        = "postgres-sg"
   description = "Security group for PostgreSQL database"
+  vpc_id      = aws_vpc.pvt_app_vpc.id
 
   ingress {
     from_port   = 5432

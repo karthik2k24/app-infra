@@ -150,17 +150,22 @@ resource "aws_eks_cluster" "eks_cluster" {
 }
 
 
+
+
 resource "aws_launch_template" "eks_launch_template" {
   name_prefix = "eks-node-"
   image_id    = "ami-01493046d3cff1aba"
-  user_data   = base64encode("#!/bin/bash\n/etc/eks/bootstrap.sh pvt-app-cluster\n")
+  key_name    = "SRE2"
+  user_data   = base64encode(file("user_data.sh"))
+
   tag_specifications {
     resource_type = "instance"
     tags = {
       Name = "eks-node"
     }
   }
-}
+  vpc_security_group_ids = [aws_security_group.eks_node_sg.id]
+  }
 
 
 # EKS Node Group
@@ -187,11 +192,35 @@ resource "aws_eks_node_group" "eks_node_group" {
     id      = aws_launch_template.eks_launch_template.id
     version = "$Latest"
   }
+    
 
+
+}
+
+resource "aws_security_group" "eks_node_sg" {
+  name        = "eks-node-sg"
+  description = "Security group for EKS nodes"
+  vpc_id = aws_vpc.pvt_app_vpc.id
+
+
+  ingress {
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
 }
 
 # EKS Cluster Security Group
 resource "aws_security_group" "eks_sg" {
+  name        = "eks-cluster-sg"
   vpc_id = aws_vpc.pvt_app_vpc.id
 
   egress {
@@ -200,6 +229,7 @@ resource "aws_security_group" "eks_sg" {
     to_port     = 0
     protocol    = "tcp"
   }
+
 
   ingress {
     cidr_blocks = ["10.0.0.0/16"]
@@ -214,4 +244,55 @@ resource "aws_security_group" "eks_sg" {
     to_port     = 80
     protocol    = "tcp"
   }
+
+   ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Restrict to EKS API server if possible
+  }
+  ingress {
+    from_port       = 0
+    to_port         = 65535
+    protocol        = "tcp"
+    self            = true
+  }
+  ingress {
+    from_port       = 0
+    to_port         = 65535
+    protocol        = "udp"
+    self            = true
+  }
+   ingress {
+    from_port   = 53
+    to_port     = 53
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Restrict to VPC CIDR if possible
+  }
+  ingress {
+    from_port   = 53
+    to_port     = 53
+    protocol    = "udp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+
+
+# Output the EKS cluster name
+output "eks_cluster_name" {
+  description = "The name of the EKS cluster"
+  value       = aws_eks_cluster.eks_cluster.name
+}
+
+# Output the EKS cluster endpoint
+output "eks_cluster_endpoint" {
+  description = "The endpoint for the EKS cluster"
+  value       = aws_eks_cluster.eks_cluster.endpoint
+}
+
+# Output the EKS cluster certificate authority
+output "eks_cluster_certificate_authority" {
+  description = "The base64 encoded certificate data required to communicate with the cluster API server"
+  value       = aws_eks_cluster.eks_cluster.certificate_authority.0.data
 }
