@@ -1,4 +1,4 @@
-EC2 Instance with Bastion Security Group
+#EC2 Instance with Bastion Security Group
 resource "aws_instance" "bastion_instance" {
   ami           = "ami-01493046d3cff1aba"
   instance_type = "t2.micro"               # Choose your preferred instance type
