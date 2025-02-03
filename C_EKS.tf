@@ -172,6 +172,12 @@ resource "aws_eks_cluster" "eks_cluster" {
 resource "aws_launch_template" "eks_launch_template" {
   name_prefix   = "eks-node-"
   image_id      = "ami-01493046d3cff1aba"
+   user_data = <<-EOF
+              #!/bin/bash
+              curl -O https://github.com/awslabs/amazon-eks-ami/raw/master/files/bootstrap.sh
+              chmod +x bootstrap.sh
+              /etc/eks/bootstrap.sh pvt-app-cluster
+              EOF
   tag_specifications {
     resource_type = "instance"
     tags = {
