@@ -1,5 +1,11 @@
-.terraform/*
-terraform.tfstate
-terraform.tfstate.backup
+# Ignore Terraform state files
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+terraform.tfvars.json
+
+# Ignore macOS system files
 .DS_Store
-.terraform.tfstate.lock.info
+
