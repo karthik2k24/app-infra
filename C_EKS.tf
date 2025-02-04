@@ -156,8 +156,11 @@ resource "aws_launch_template" "eks_launch_template" {
   name_prefix = "eks-node-"
   image_id    = "ami-01493046d3cff1aba"
   key_name    = "SRE2"
-  user_data   = base64encode(file("user_data.tpl"))
-
+  user_data = base64encode(templatefile("user_data.tpl", {
+    EKS_CLUSTER_NAME = aws_eks_cluster.eks_cluster.name
+    EKS_CLUSTER_ENDPOINT = aws_eks_cluster.eks_cluster.endpoint
+    EKS_CLUSTER_CA = aws_eks_cluster.eks_cluster.certificate_authority[0].data
+  }))
   tag_specifications {
     resource_type = "instance"
     tags = {
