@@ -156,7 +156,7 @@ resource "aws_launch_template" "eks_launch_template" {
   name_prefix = "eks-node-"
   image_id    = "ami-01493046d3cff1aba"
   key_name    = "SRE2"
-  user_data   = base64encode(file("user_data.sh"))
+  user_data   = base64encode(file("user_data.tpl"))
 
   tag_specifications {
     resource_type = "instance"
@@ -166,6 +166,11 @@ resource "aws_launch_template" "eks_launch_template" {
   }
   vpc_security_group_ids = [aws_security_group.eks_node_sg.id]
   }
+
+
+output "launch_template" {
+  value = aws_launch_template.eks_launch_template
+}
 
 
 # EKS Node Group
