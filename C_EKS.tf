@@ -1,4 +1,42 @@
 # IAM Role for EKS Cluster
+resource "aws_eks_cluster" "eks_cluster" {
+  name     = "pvt-app-cluster"
+  role_arn = aws_iam_role.eks_cluster_role.arn
+  version  = "1.32"
+
+  vpc_config {
+    subnet_ids = [aws_subnet.pvt_app_1a.id,aws_subnet.pvt_app_1b.id,aws_subnet.pvt_app_1c.id]
+    endpoint_public_access  = true
+    endpoint_private_access = true
+    
+  }
+
+}
+
+resource "aws_eks_node_group" "eks_node_group" {
+  cluster_name    = aws_eks_cluster.eks_cluster.name
+  node_group_name = "pvt-app-node-group"
+  node_role_arn   = aws_iam_role.eks_node_role.arn
+  subnet_ids = [
+    aws_subnet.pvt_app_1a.id,
+    aws_subnet.pvt_app_1b.id,
+    aws_subnet.pvt_app_1c.id
+  ]
+  scaling_config {
+    desired_size = 1
+    max_size     = 2
+    min_size     = 1
+  }
+  instance_types = ["t2.small"]
+  capacity_type  = "SPOT"
+
+  launch_template {
+    id      = aws_launch_template.eks_launch_template.id
+    version = "$Latest"
+  }
+}
+
+
 resource "aws_iam_role" "eks_cluster_role" {
   name = "eks-cluster-role"
 
@@ -9,6 +47,57 @@ resource "aws_iam_role" "eks_cluster_role" {
         Action = "sts:AssumeRole"
         Principal = {
           Service = "eks.amazonaws.com"
+        }
+        Effect = "Allow"
+        Sid    = ""
+      },
+    ]
+  })
+}
+resource "aws_iam_user" "eks_user" {
+  name = "eks-user"
+}
+
+resource "aws_iam_user_policy_attachment" "eks_user_policy" {
+  user       = aws_iam_user.eks_user.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
+resource "kubernetes_config_map" "aws_auth" {
+  metadata {
+    name      = "aws-auth"
+    namespace = "kube-system"
+  }
+
+  data = {
+    mapRoles = <<EOF
+      - rolearn: arn:aws:iam::<account-id>:role/${aws_iam_role.eks_cluster_role.name}
+        username: eks-cluster-role
+        groups:
+          - system:masters
+    EOF
+
+    mapUsers = <<EOF
+      - userarn: arn:aws:iam::<account-id>:user/${aws_iam_user.eks_user.name}
+        username: eks-user
+        groups:
+          - system:masters
+    EOF
+  }
+}
+
+
+# IAM Role for EKS Node Group
+resource "aws_iam_role" "eks_node_role" {
+  name = "eks-node-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Principal = {
+          Service = "ec2.amazonaws.com"
         }
         Effect = "Allow"
         Sid    = ""
@@ -33,35 +122,24 @@ resource "aws_iam_role_policy_attachment" "AmazonEKSVPCResourceController" {
   role       = aws_iam_role.eks_cluster_role.name
 }
 
+################################################################################################################################################
+# IAM Policy for EKS Node Role
+
+resource "aws_iam_role_policy_attachment" "AdministratorAccess" {
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+  role       = aws_iam_role.eks_node_role.name
+}
+
 resource "aws_iam_role_policy_attachment" "eks_node_cni_policy_attachment" {
   role       = aws_iam_role.eks_node_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 }
-# IAM Role for EKS Node Group
-resource "aws_iam_role" "eks_node_role" {
-  name = "eks-node-role"
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-        Effect = "Allow"
-        Sid    = ""
-      },
-    ]
-  })
-}
 
-# IAM Policy for EKS Node Role
 resource "aws_iam_role_policy_attachment" "eks_node_policy_attachment" {
   role       = aws_iam_role.eks_node_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
 }
-
 
 
 resource "aws_iam_role_policy_attachment" "eks_node_ecr_policy_attachment" {
@@ -70,11 +148,7 @@ resource "aws_iam_role_policy_attachment" "eks_node_ecr_policy_attachment" {
 }
 
 
-##############
-resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-  role       = aws_iam_role.eks_node_role.name
-}
+
 
 resource "aws_iam_role_policy_attachment" "AmazonEKS_CNI_Policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
@@ -132,35 +206,21 @@ resource "aws_iam_policy" "autoscaler" {
 }
 #######################
 
-resource "aws_eks_cluster" "eks_cluster" {
-  name     = "pvt-app-cluster"
-  role_arn = aws_iam_role.eks_cluster_role.arn
-  version  = "1.32"
-
-  vpc_config {
-    subnet_ids = [
-      aws_subnet.pvt_app_1a.id,
-      aws_subnet.pvt_app_1b.id,
-      aws_subnet.pvt_app_1c.id
-    ]
-    endpoint_public_access  = true
-    endpoint_private_access = true
-  }
-
-}
 
 
 
+#aws ec2 describe-images --filters "Name=name,Values=amazon-eks-node-*1.32*" --query "Images[*].{ID:ImageId,Name:Name}" --region us-east-1 --output table
 
 resource "aws_launch_template" "eks_launch_template" {
   name_prefix = "eks-node-"
-  image_id    = "ami-01493046d3cff1aba"
+  image_id    = "ami-0226f5d1e7c6fc56e"
   key_name    = "SRE2"
-  user_data = base64encode(templatefile("user_data.tpl", {
-    EKS_CLUSTER_NAME = aws_eks_cluster.eks_cluster.name
-    EKS_CLUSTER_ENDPOINT = aws_eks_cluster.eks_cluster.endpoint
-    EKS_CLUSTER_CA = aws_eks_cluster.eks_cluster.certificate_authority[0].data
-  }))
+  user_data = base64encode(<<-EOF
+  #!/bin/bash
+  set -o xtrace
+  /etc/eks/bootstrap.sh ${aws_eks_cluster.eks_cluster.name} --apiserver-endpoint ${aws_eks_cluster.eks_cluster.endpoint}
+  EOF
+  )
   tag_specifications {
     resource_type = "instance"
     tags = {
@@ -168,42 +228,13 @@ resource "aws_launch_template" "eks_launch_template" {
     }
   }
   vpc_security_group_ids = [aws_security_group.eks_node_sg.id]
-  }
-
-
-output "launch_template" {
-  value = aws_launch_template.eks_launch_template
 }
+
+
 
 
 # EKS Node Group
-resource "aws_eks_node_group" "eks_node_group" {
-  cluster_name    = aws_eks_cluster.eks_cluster.name
-  node_group_name = "pvt-app-node-group"
-  node_role_arn   = aws_iam_role.eks_node_role.arn
-  subnet_ids = [
-    aws_subnet.pvt_app_1a.id,
-    aws_subnet.pvt_app_1b.id,
-    aws_subnet.pvt_app_1c.id
-  ]
 
-  scaling_config {
-    desired_size = 1
-    max_size     = 2
-    min_size     = 1
-  }
-
-  instance_types = ["t2.small"]
-  capacity_type  = "SPOT"
-
-  launch_template {
-    id      = aws_launch_template.eks_launch_template.id
-    version = "$Latest"
-  }
-    
-
-
-}
 
 resource "aws_security_group" "eks_node_sg" {
   name        = "eks-node-sg"
@@ -222,66 +253,74 @@ resource "aws_security_group" "eks_node_sg" {
     from_port   = 0
     to_port     = 65535
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
 # EKS Cluster Security Group
 resource "aws_security_group" "eks_sg" {
   name        = "eks-cluster-sg"
-  vpc_id = aws_vpc.pvt_app_vpc.id
+  vpc_id      = aws_vpc.pvt_app_vpc.id
 
+  # Egress Rule - Allow outbound traffic to anywhere (0.0.0.0/0)
   egress {
-    cidr_blocks = ["0.0.0.0/0"]
     from_port   = 0
-    to_port     = 0
+    to_port     = 65535
     protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # Allow all outbound traffic
   }
 
-
+  # Ingress Rules for internal communication within the VPC
   ingress {
     cidr_blocks = ["10.0.0.0/16"]
     from_port   = 443
     to_port     = 443
-    protocol    = "tcp"
+    protocol    = "tcp"  # Allow HTTPS communication within VPC
   }
 
   ingress {
     cidr_blocks = ["10.0.0.0/16"]
     from_port   = 80
     to_port     = 80
-    protocol    = "tcp"
+    protocol    = "tcp"  # Allow HTTP communication within VPC
   }
 
-   ingress {
+  # Ingress for EKS API Server (allow from anywhere)
+  ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Restrict to EKS API server if possible
+    cidr_blocks = ["0.0.0.0/0"]  # Allow access to EKS API server
   }
+
+  # Self communication within the security group (for pod-to-pod communication)
   ingress {
-    from_port       = 0
-    to_port         = 65535
-    protocol        = "tcp"
-    self            = true
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "tcp"
+    self        = true  # Allow internal communication within the security group
   }
+
   ingress {
-    from_port       = 0
-    to_port         = 65535
-    protocol        = "udp"
-    self            = true
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "udp"
+    self        = true  # Allow UDP internal communication within the security group
   }
-   ingress {
+
+  # Allow DNS (53) over both TCP and UDP
+  ingress {
     from_port   = 53
     to_port     = 53
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Restrict to VPC CIDR if possible
+    cidr_blocks = ["0.0.0.0/0"]  # Allow DNS from anywhere
   }
+
   ingress {
     from_port   = 53
     to_port     = 53
     protocol    = "udp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]  # Allow DNS over UDP from anywhere
   }
 }
 
@@ -303,4 +342,8 @@ output "eks_cluster_endpoint" {
 output "eks_cluster_certificate_authority" {
   description = "The base64 encoded certificate data required to communicate with the cluster API server"
   value       = aws_eks_cluster.eks_cluster.certificate_authority.0.data
+}
+
+output "launch_template" {
+  value = aws_launch_template.eks_launch_template
 }
