@@ -5,11 +5,11 @@ resource "aws_eks_cluster" "eks_cluster" {
   version  = "1.32"
 
   vpc_config {
-    subnet_ids = [aws_subnet.pvt_app_1a.id,aws_subnet.pvt_app_1b.id,aws_subnet.pvt_app_1c.id]
-    security_group_ids = [aws_security_group.eks_sg.id]
+    subnet_ids              = [aws_subnet.pvt_app_1a.id, aws_subnet.pvt_app_1b.id, aws_subnet.pvt_app_1c.id]
+    security_group_ids      = [aws_security_group.eks_sg.id]
     endpoint_public_access  = true
     endpoint_private_access = true
-    
+
   }
 
 }
@@ -37,7 +37,8 @@ resource "aws_eks_node_group" "eks_node_group" {
 
   launch_template {
     id      = aws_launch_template.eks_launch_template.id
-    version = 1
+    version = aws_launch_template.eks_launch_template.latest_version
+    
   }
 }
 # IAM Role for EKS Node Group
@@ -100,30 +101,12 @@ resource "aws_iam_role_policy_attachment" "AmazonEKSVPCResourceController" {
 ################################################################################################################################################
 # IAM Policy for EKS Node Role
 
-resource "aws_iam_role_policy_attachment" "AdministratorAccess" {
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
-  role       = aws_iam_role.eks_node_role.name
-}
-
-resource "aws_iam_role_policy_attachment" "eks_node_cni_policy_attachment" {
-  role       = aws_iam_role.eks_node_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-}
 
 
 resource "aws_iam_role_policy_attachment" "eks_node_policy_attachment" {
   role       = aws_iam_role.eks_node_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
 }
-
-
-resource "aws_iam_role_policy_attachment" "eks_node_ecr_policy_attachment" {
-  role       = aws_iam_role.eks_node_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-}
-
-
-
 
 resource "aws_iam_role_policy_attachment" "AmazonEKS_CNI_Policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
@@ -155,9 +138,8 @@ resource "aws_iam_instance_profile" "worker" {
   name       = "eks-worker-new-profile"
   role       = aws_iam_role.eks_node_role.name
 }
-##############
+######################################
 
-########################
 resource "aws_iam_policy" "autoscaler" {
   name = "eks-autoscaler-policy"
   policy = jsonencode({
@@ -179,13 +161,10 @@ resource "aws_iam_policy" "autoscaler" {
     ]
   })
 }
-#######################
-
-
+######################################
 
 
 #aws ec2 describe-images --filters "Name=name,Values=amazon-eks-node-*1.32*" --query "Images[*].{ID:ImageId,Name:Name}" --region us-east-1 --output table
-
 resource "aws_launch_template" "eks_launch_template" {
   name_prefix = "eks-node-"
   image_id    = "ami-0226f5d1e7c6fc56e"
@@ -207,22 +186,17 @@ resource "aws_launch_template" "eks_launch_template" {
 
 
 
-
-
-
 # Output the EKS cluster name
 output "eks_cluster_name" {
   description = "The name of the EKS cluster"
   value       = aws_eks_cluster.eks_cluster.name
 }
 
-# Output the EKS cluster endpoint
 output "eks_cluster_endpoint" {
   description = "The endpoint for the EKS cluster"
   value       = aws_eks_cluster.eks_cluster.endpoint
 }
 
-# Output the EKS cluster certificate authority
 output "eks_cluster_certificate_authority" {
   description = "The base64 encoded certificate data required to communicate with the cluster API server"
   value       = aws_eks_cluster.eks_cluster.certificate_authority.0.data
