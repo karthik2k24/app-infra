@@ -35,6 +35,24 @@ resource "aws_eks_node_group" "eks_node_group" {
     version = "$Latest"
   }
 }
+# IAM Role for EKS Node Group
+resource "aws_iam_role" "eks_node_role" {
+  name = "eks-node-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+        Effect = "Allow"
+        Sid    = ""
+      },
+    ]
+  })
+}
 
 
 resource "aws_iam_role" "eks_cluster_role" {
@@ -54,57 +72,9 @@ resource "aws_iam_role" "eks_cluster_role" {
     ]
   })
 }
-resource "aws_iam_user" "eks_user" {
-  name = "eks-user"
-}
-
-resource "aws_iam_user_policy_attachment" "eks_user_policy" {
-  user       = aws_iam_user.eks_user.name
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
-}
-
-resource "kubernetes_config_map" "aws_auth" {
-  metadata {
-    name      = "aws-auth"
-    namespace = "kube-system"
-  }
-
-  data = {
-    mapRoles = <<EOF
-      - rolearn: arn:aws:iam::<account-id>:role/${aws_iam_role.eks_cluster_role.name}
-        username: eks-cluster-role
-        groups:
-          - system:masters
-    EOF
-
-    mapUsers = <<EOF
-      - userarn: arn:aws:iam::<account-id>:user/${aws_iam_user.eks_user.name}
-        username: eks-user
-        groups:
-          - system:masters
-    EOF
-  }
-}
 
 
-# IAM Role for EKS Node Group
-resource "aws_iam_role" "eks_node_role" {
-  name = "eks-node-role"
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-        Effect = "Allow"
-        Sid    = ""
-      },
-    ]
-  })
-}
 
 # IAM Policy for EKS Cluster Role
 resource "aws_iam_role_policy_attachment" "eks_cluster_policy_attachment" {
