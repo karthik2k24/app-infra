@@ -28,12 +28,16 @@ resource "aws_eks_node_group" "eks_node_group" {
     max_size     = 2
     min_size     = 1
   }
+  ami_type = "CUSTOM"
+  update_config {
+    max_unavailable = 1
+  }
   instance_types = ["t2.small"]
   capacity_type  = "SPOT"
 
   launch_template {
     id      = aws_launch_template.eks_launch_template.id
-    version = "$Latest"
+    version = 1
   }
 }
 # IAM Role for EKS Node Group
