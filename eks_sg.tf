@@ -3,7 +3,7 @@ resource "aws_security_group" "eks_node_sg" {
   description = "Security group for EKS nodes"
   vpc_id      = aws_vpc.pvt_app_vpc.id
 
-
+  // Ingress Rules
   ingress {
     from_port   = 0
     to_port     = 65535
@@ -11,11 +11,17 @@ resource "aws_security_group" "eks_node_sg" {
     cidr_blocks = ["10.0.0.0/16"]
   }
 
+  // Egress Rules
   egress {
     from_port   = 0
     to_port     = 65535
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  // Tags
+  tags = {
+    Name = "eks-node-sg"
   }
 }
 
@@ -24,7 +30,7 @@ resource "aws_security_group" "eks_sg" {
   name   = "eks-cluster-sg"
   vpc_id = aws_vpc.pvt_app_vpc.id
 
-  # Egress Rule - Allow outbound traffic to anywhere (0.0.0.0/0)
+  // Egress Rule - Allow outbound traffic to anywhere (0.0.0.0/0)
   egress {
     from_port   = 0
     to_port     = 65535
@@ -32,22 +38,22 @@ resource "aws_security_group" "eks_sg" {
     cidr_blocks = ["0.0.0.0/0"] # Allow all outbound traffic
   }
 
-  # Ingress Rules for internal communication within the VPC
+  // Ingress Rules for internal communication within the VPC
   ingress {
-    cidr_blocks = ["10.0.0.0/16"]
     from_port   = 443
     to_port     = 443
     protocol    = "tcp" # Allow HTTPS communication within VPC
+    cidr_blocks = ["10.0.0.0/16"]
   }
 
   ingress {
-    cidr_blocks = ["10.0.0.0/16"]
     from_port   = 80
     to_port     = 80
     protocol    = "tcp" # Allow HTTP communication within VPC
+    cidr_blocks = ["10.0.0.0/16"]
   }
 
-  # Ingress for EKS API Server (allow from anywhere)
+  // Ingress for EKS API Server (restrict to specific IP range if possible)
   ingress {
     from_port   = 443
     to_port     = 443
@@ -55,7 +61,7 @@ resource "aws_security_group" "eks_sg" {
     cidr_blocks = ["0.0.0.0/0"] # Allow access to EKS API server
   }
 
-  # Self communication within the security group (for pod-to-pod communication)
+  // Self communication within the security group (for pod-to-pod communication)
   ingress {
     from_port = 0
     to_port   = 65535
@@ -70,7 +76,7 @@ resource "aws_security_group" "eks_sg" {
     self      = true # Allow UDP internal communication within the security group
   }
 
-  # Allow DNS (53) over both TCP and UDP
+  // Allow DNS (53) over both TCP and UDP
   ingress {
     from_port   = 53
     to_port     = 53
@@ -83,5 +89,10 @@ resource "aws_security_group" "eks_sg" {
     to_port     = 53
     protocol    = "udp"
     cidr_blocks = ["0.0.0.0/0"] # Allow DNS over UDP from anywhere
+  }
+
+  // Tags
+  tags = {
+    Name = "eks-cluster-sg"
   }
 }
