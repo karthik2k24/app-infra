@@ -5,7 +5,7 @@ resource "aws_eks_cluster" "eks_cluster" {
   version  = "1.32"
 
   vpc_config {
-    subnet_ids              = [aws_subnet.pvt_app_1a.id, aws_subnet.pvt_app_1b.id, aws_subnet.pvt_app_1c.id]
+    subnet_ids              = [aws_subnet.pvt_app_1d.id, aws_subnet.pvt_app_1b.id, aws_subnet.pvt_app_1c.id]
     security_group_ids      = [aws_security_group.eks_sg.id]
     endpoint_public_access  = true
     endpoint_private_access = true

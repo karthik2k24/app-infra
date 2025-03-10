@@ -20,10 +20,10 @@ resource "aws_subnet" "pub_app_1a" {
 }
 
 # Private Subnets
-resource "aws_subnet" "pvt_app_1a" {
+resource "aws_subnet" "pvt_app_1d" {
   vpc_id            = aws_vpc.pvt_app_vpc.id
   cidr_block        = "10.0.2.0/24"
-  availability_zone = "us-east-1a"
+  availability_zone = "us-east-1d"
   tags = {
     Name = "pvt-app-1a"
   }
