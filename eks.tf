@@ -32,7 +32,7 @@ resource "aws_eks_node_group" "eks_node_group" {
   update_config {
     max_unavailable = 1
   }
-  instance_types = ["t2.medium"]
+  instance_types = ["t2.large"]
   capacity_type  = "SPOT"
 
   launch_template {
