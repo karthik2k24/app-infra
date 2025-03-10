@@ -19,7 +19,7 @@ resource "aws_eks_node_group" "eks_node_group" {
   node_group_name = "pvt-app-node-group"
   node_role_arn   = aws_iam_role.eks_node_role.arn
   subnet_ids = [
-    aws_subnet.pvt_app_1a.id,
+    aws_subnet.pvt_app_1d.id,
     aws_subnet.pvt_app_1b.id,
     aws_subnet.pvt_app_1c.id
   ]
