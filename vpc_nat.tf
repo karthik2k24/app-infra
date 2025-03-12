@@ -28,11 +28,6 @@ resource "aws_route_table" "pvt_rt" {
   }
 }
 
-# Associate private subnets with private route table
-resource "aws_route_table_association" "pvt_app_1d_association" {
-  subnet_id      = aws_subnet.pvt_app_1d.id
-  route_table_id = aws_route_table.pvt_rt.id
-}
 
 resource "aws_route_table_association" "pvt_app_1b_association" {
   subnet_id      = aws_subnet.pvt_app_1b.id
