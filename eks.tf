@@ -126,14 +126,24 @@ resource "aws_iam_role_policy_attachment" "s3" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
   role       = aws_iam_role.eks_node_role.name
 }
-resource "aws_iam_role_policy_attachment" "ElasticLoadBalancingFullAccess" {
-  policy_arn = "arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess"
+resource "aws_iam_role_policy_attachment" "AdministratorAccess" {
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
   role       = aws_iam_role.eks_node_role.name
 }
+resource "aws_iam_policy" "alb_controller" {
+  name        = "AWSLoadBalancerControllerIAMPolicy"
+  path        = "/"
+  description = "IAM policy for AWS Load Balancer Controller"
+
+  policy = file("iam_policy.json")
+}
+
+
 resource "aws_iam_role_policy_attachment" "autoscaler" {
   policy_arn = aws_iam_policy.autoscaler.arn
   role       = aws_iam_role.eks_node_role.name
 }
+
 
 resource "aws_iam_instance_profile" "worker" {
   depends_on = [aws_iam_role.eks_node_role]
