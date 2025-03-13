@@ -1,7 +1,7 @@
 resource "aws_security_group" "eks_node_sg" {
   name        = "eks-node-sg"
   description = "Security group for EKS nodes"
-  vpc_id      = aws_vpc.pvt_app_vpc.id
+  vpc_id     = var.vpc_id
 
   // Ingress Rules
   ingress {
@@ -28,7 +28,7 @@ resource "aws_security_group" "eks_node_sg" {
 # EKS Cluster Security Group
 resource "aws_security_group" "eks_sg" {
   name   = "eks-cluster-sg"
-  vpc_id = aws_vpc.pvt_app_vpc.id
+  vpc_id = var.vpc_id
 
   // Egress Rule - Allow outbound traffic to anywhere (0.0.0.0/0)
   egress {

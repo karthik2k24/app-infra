@@ -5,11 +5,10 @@ resource "aws_eks_cluster" "eks_cluster" {
   version  = "1.32"
 
   vpc_config {
-    subnet_ids              = [aws_subnet.pvt_app_1b.id, aws_subnet.pvt_app_1c.id]
+    subnet_ids              = [var.pvt_app_1b_id, var.pvt_app_1c_id]
     security_group_ids      = [aws_security_group.eks_sg.id]
     endpoint_public_access  = true
     endpoint_private_access = true
-
   }
 
 }
@@ -18,10 +17,7 @@ resource "aws_eks_node_group" "eks_node_group" {
   cluster_name    = aws_eks_cluster.eks_cluster.name
   node_group_name = "pvt-app-node-group"
   node_role_arn   = aws_iam_role.eks_node_role.arn
-  subnet_ids = [
-    aws_subnet.pvt_app_1b.id,
-    aws_subnet.pvt_app_1c.id
-  ]
+  subnet_ids = [var.pvt_app_1b_id, var.pvt_app_1c_id]
   scaling_config {
     desired_size = 1
     max_size     = 2
@@ -37,7 +33,7 @@ resource "aws_eks_node_group" "eks_node_group" {
   launch_template {
     id      = aws_launch_template.eks_launch_template.id
     version = aws_launch_template.eks_launch_template.latest_version
-    
+
   }
 }
 # IAM Role for EKS Node Group
@@ -132,7 +128,7 @@ resource "aws_iam_role_policy_attachment" "AdministratorAccess" {
 }
 resource "aws_iam_policy" "alb_controller" {
   name        = "AWSLoadBalancerControllerIAMPolicy"
-  path        = "/"
+  path        = "iam_policy.json"
   description = "IAM policy for AWS Load Balancer Controller"
 
   policy = file("iam_policy.json")
