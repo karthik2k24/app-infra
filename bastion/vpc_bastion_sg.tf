@@ -1,7 +1,7 @@
 resource "aws_security_group" "bastion_sg" {
   name        = "bastion-sg"
   description = "Security group for bastion host"
-  vpc_id      = aws_vpc.pvt_app_vpc.id
+  vpc_id      = var.vpc_id
 
 
   ingress {
