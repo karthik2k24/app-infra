@@ -13,17 +13,6 @@ module "vpc" {
   source = "./vpc"
 }
 
-module "iam" {
-  source = "./iam"
-}
-
-
-module "aws_alb_controller" {
-  source = "./aws_alb_controller"
-  vpc_id        = module.vpc.vpc_id
-  cluster_name  = module.eks.cluster_name
-}
-
 module "eks" {
   source        = "./eks"
   vpc_id        = module.vpc.vpc_id
