@@ -20,3 +20,4 @@ module "eks" {
   pvt_app_1b_id = module.vpc.pvt_app_1b_id
 
 }
+
