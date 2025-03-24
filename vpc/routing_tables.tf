@@ -20,10 +20,10 @@ resource "aws_route_table_association" "pub_app_1a_association" {
   route_table_id = aws_route_table.public_rt.id
 }
 
-# resource "aws_route_table_association" "pub_app_1b_association" {
-#   subnet_id      = aws_subnet.pub_app_1b.id
-#   route_table_id = aws_route_table.public_rt.id
-# }
+resource "aws_route_table_association" "pub_app_1b_association" {
+  subnet_id      = aws_subnet.pub_app_1b.id
+  route_table_id = aws_route_table.public_rt.id
+}
 
 # resource "aws_route_table_association" "pub_app_1c_association" {
 #   subnet_id      = aws_subnet.pub_app_1c.id
