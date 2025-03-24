@@ -53,29 +53,29 @@ resource "aws_route_table_association" "pvt_app_1a_association" {
 
 
 
-# # Private Route Table for 1b
-# resource "aws_route_table" "private_rt_1b" {
-#   vpc_id = aws_vpc.pvt_app_vpc.id
-#   tags = {
-#     Name = "private-rt-1b"
-#   }
-# }
+# Private Route Table for 1b
+resource "aws_route_table" "private_rt_1b" {
+  vpc_id = aws_vpc.pvt_app_vpc.id
+  tags = {
+    Name = "private-rt-1b"
+  }
+}
 
-# # Route for Private Subnets in b to access the internet via NAT Gateway
-# #pvt subnet 1b ---> nat_gw_1b
-# resource "aws_route" "private_route_1b" {
-#   route_table_id         = aws_route_table.private_rt_1b.id
-#   destination_cidr_block = "0.0.0.0/0"
-#   nat_gateway_id         = aws_nat_gateway.nat_gw_1b.id
-# }
+# Route for Private Subnets in b to access the internet via NAT Gateway
+#pvt subnet 1b ---> nat_gw_1b
+resource "aws_route" "private_route_1b" {
+  route_table_id         = aws_route_table.private_rt_1b.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat_gw_1a.id
+}
 
 
 
-# # Associate Private Subnet 1b with Route Table 1b
-# resource "aws_route_table_association" "pvt_app_1b_association" {
-#   subnet_id      = aws_subnet.pvt_app_1b.id
-#   route_table_id = aws_route_table.private_rt_1b.id
-# }
+# Associate Private Subnet 1b with Route Table 1b
+resource "aws_route_table_association" "pvt_app_1b_association" {
+  subnet_id      = aws_subnet.pvt_app_1b.id
+  route_table_id = aws_route_table.private_rt_1b.id
+}
 
 
 

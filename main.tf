@@ -17,6 +17,6 @@ module "eks" {
   source        = "./eks"
   vpc_id        = module.vpc.vpc_id
   pvt_app_1a_id = module.vpc.pvt_app_1a_id
-  # pvt_app_1b_id = module.vpc.pvt_app_1b_id
+  pvt_app_1b_id = module.vpc.pvt_app_1b_id
 
 }

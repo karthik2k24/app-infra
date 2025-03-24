@@ -5,7 +5,7 @@ resource "aws_eks_cluster" "eks_cluster" {
   version  = "1.32"
 
   vpc_config {
-    subnet_ids              = [var.pvt_app_1a_id]
+    subnet_ids              = [var.pvt_app_1a_id, var.pvt_app_1b_id]
     security_group_ids      = [aws_security_group.eks_cluster_sg.id]
     endpoint_public_access  = true
     endpoint_private_access = true
@@ -17,7 +17,7 @@ resource "aws_eks_node_group" "eks_node_group" {
   cluster_name    = aws_eks_cluster.eks_cluster.name
   node_group_name = "pvt-app-node-group"
   node_role_arn   = aws_iam_role.eks_node_role.arn
-  subnet_ids      = [var.pvt_app_1a_id]
+  subnet_ids      = [var.pvt_app_1a_id, var.pvt_app_1b_id]
   scaling_config {
     desired_size = 1
     max_size     = 2
